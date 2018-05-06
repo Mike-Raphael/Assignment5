@@ -6,6 +6,7 @@ import java.util.Scanner;
 
 
 
+
 public class QuestionE
 {
 	static final String DRIVER = "com.mysql.jdbc.Driver"; // The Driver determines the vendor and type of database. In our case it is Mysql. This is from the slides
@@ -23,38 +24,40 @@ public class QuestionE
 		{
 			Class.forName(DRIVER); //The basic idea behind using Class.forName() is to load a JDBC driver implementation . In our case MySQL
 
-
-			// List of interface options for the user. You can add more here.
-			System.out.println("Choose an option below: ");
-			System.out.println("1: View the data of a specific student (Name, Surname, School, UCT Score)");
-			System.out.println("2: View course averages");
-			System.out.println("3: View ");
-			System.out.println("0: Quit");
 			Scanner keyboard = new Scanner(System.in);
-
-			int select = 0; 
-			select = keyboard.nextInt();
-
-			while(select!=0)
+			int select; 
+			do
 			{
+                                // List of interface options for the user. You can add more here.
+                            	System.out.println("Choose an option below: ");
+				System.out.println("1: View the data of a specific student (Name, Surname, School, UCT Score)");
+				System.out.println("2: View course averages");
+				System.out.println("3: View top 3 students in a particular course");
+                                System.out.println("4: View the GPA of a specific student");
+				System.out.println("0: Quit");
+				select = keyboard.nextInt();
+                                
 				//Option 1
 				if (select==1)
 				{
-					conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);  //Open a connection to the database
-					stment = conn.createStatement(); //Create a statement object
+                                    System.out.println("Enter Student ID: ");
+                                    String IDs = keyboard.next();
+                                    conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);  //Open a connection to the database
+                                    stment = conn.createStatement(); //Create a statement object
 
-					System.out.println("Enter Student ID: ");
-					String IDs = keyboard.next();
+
 					
-					String sql = "SELECT StuID, FirstName, LastName, SchoolName, UCTScore FROM Matric WHERE StuID="; // SQL Statement
-					String query = sql + IDs; // We add the user input to the SQL statement
+                                    String sql = "SELECT StuID, FirstName, LastName, SchoolName, UCTScore FROM Matric WHERE StuID="; // SQL Statement
+                                    String query = sql + IDs; // We add the user input to the SQL statement
 
-					ResultSet result = stment.executeQuery(query);  // We excecute the query and it returnd a resultSet object
-
+                                    ResultSet result = stment.executeQuery(query);  // We excecute the query and it returnd a resultSet object
+                                    System.out.println();
+                                    System.out.printf("%-15s%-20s%-20s%-20s%-10s","Student ID","Name", "Surname", "School Name", "UCT Score");
+                                    System.out.println("");
 					//We can loop through a result set in a similar way we use Scanners to loop through files. 
 					//This is not an array so there are not indexes and we cant go backwards.
-					while(result.next())
-					{
+                                    while(result.next())
+                                    {
 						// We can access individual columns in out database and store them in variables
 						int StuID = result.getInt("StuID");
 						String FirstName = result.getString("FirstName");
@@ -63,11 +66,7 @@ public class QuestionE
 						int UCTScore = result.getInt("UCTScore");
 
 						// We can now print the result line by line
-						System.out.print("Student ID: "+ StuID + " | Name: "+ FirstName
-							+ " | Surname: "+ LastName+ " | School Name: "+ SchoolName +
-							 "| UCT Score: "+ UCTScore);
-
-
+						System.out.printf("%-15d%-20s%-20s%-20s%-10d", StuID , FirstName, LastName, SchoolName, UCTScore);
 						System.out.println("\n");
 
 					}
@@ -80,10 +79,10 @@ public class QuestionE
 				
 				if (select==2)
 				{
+                                        System.out.println("Enter Course code: ");
+					String code = keyboard.next();
 					conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
 					stment = conn.createStatement();
-					System.out.println("Enter Course code: ");
-					String code = keyboard.next();
 					if (code.equals("0"))
 					{
 						break;
@@ -94,17 +93,16 @@ public class QuestionE
 
 
 					ResultSet result = stment.executeQuery(query);
-
+                                        System.out.println();
+                                        System.out.printf("%-15s","Average");
+                                        System.out.println("");
 					while(result.next())
 					{
-						
 						String Average = result.getString("Average");
-						
-						System.out.print("Average: " + Average);
-						System.out.println();
-						System.out.println();
-
+						System.out.printf("%-15s", Average);
 					}
+                                        
+                                        System.out.println("\n");
 					result.close();
 					stment.close();
 					conn.close();
@@ -112,18 +110,78 @@ public class QuestionE
 
 				if(select==3)
 				{
-					System.out.println("TBC");
-					
-				}
-				System.out.println("Choose an option below: ");
-				System.out.println("1: View the data of a specific student (Name, Surname, School, UCT Score)");
-				System.out.println("2: View course averages");
-				System.out.println("3: View top 3 students in a particular course");
-				System.out.println("0: Quit");
-				select = keyboard.nextInt();
+                                        System.out.println("Enter Course code: ");
+                                        String code = keyboard.next();
+					conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);
+					stment = conn.createStatement();
+                                        String sql = "Select A.StuID, B.FirstName, B.LastName, A.Course, A.Percent\n"
+                                                    + "FROM University as A, Matric as B\n"
+                                                    + "WHERE A.StuID = B.StuID AND A.Course =";
+                                        String query =sql + "'" + code + "'" + "\n" 
+                                                        + "ORDER BY A.Percent desc LIMIT 3;";
+					//  System.out.println(query);
+                                        ResultSet result = stment.executeQuery(query);
+                                        System.out.printf("%-15s%-20s%-20s%-10s%-10s","Student ID","Name", "Surname", "Course", "Percent");
+                                        System.out.println("");
+                                        while(result.next())
+                                            {
+						
+                                                int StuID = result.getInt("StuID");
+						String FirstName = result.getString("FirstName");
+						String LastName = result.getString("LastName");
+                                                String Course = result.getString("Course");
+						int Percent = result.getInt("Percent");
+
+						// We can now print the result line by line
+                                                //System.out.println("");
+						System.out.printf("%-15d%-20s%-20s%-10s%-10d", StuID , FirstName, LastName, Course, Percent);
+						System.out.println("");
+
+					}
+                                        System.out.println("");
+                                    result.close();
+                                    stment.close();
+                                    conn.close();
+                                }
+                                if(select == 4){
+                                    System.out.println("Enter Student ID: ");
+                                    String code = keyboard.next();
+                                    
+                                    conn = DriverManager.getConnection(URL, USERNAME, PASSWORD);  //Open a connection to the database
+                                    stment = conn.createStatement(); //Create a statement object
+                                    String sql = "SELECT A.StuID, B.FirstName, B.LastName," 
+                                            + "CAST((SUM((A.Percent * A.Credits)) / SUM(A.credits)) AS DECIMAL (4 , 2 )) AS GPA\n"
+                                            + "FROM University AS A,Matric AS B\n"
+                                            + "WHERE A.StuID = B.StuID AND A.StuID =";
+                                    String query =sql + "'" + code + "'" + "\n" 
+                                            + "GROUP BY A.StuID\n" 
+                                            + "ORDER BY FirstName;";
+                                    
+                                    System.out.println("");
+                                    System.out.printf("%-15s%-20s%-20s%-10s","Student ID","Name", "Surname", "GPA");
+                                    System.out.println("");
+                                    ResultSet result = stment.executeQuery(query);
+                                    while(result.next())
+					{
+						
+                                                int StuID = result.getInt("StuID");
+						String FirstName = result.getString("FirstName");
+						String LastName = result.getString("LastName");
+						String GPA = result.getString("GPA");
+
+                                                // We can now print the result line by line
+						System.out.printf("%-15d%-20s%-20s%-10s", StuID , FirstName, LastName, GPA);
+						System.out.println("\n");
+
+					}
+                                    result.close();
+                                    stment.close();
+                                    conn.close();
+                                }
+	
 
 
-			}
+			}while(select!=0);
 			
 		}
 
